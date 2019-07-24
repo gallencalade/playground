@@ -1,0 +1,1 @@
+cmd_/home/gallen/documents/projects/Drivers/dev_watchdog/watchdog.ko := ld -r -m elf_x86_64 -T ./scripts/module-common.lds --build-id  -o /home/gallen/documents/projects/Drivers/dev_watchdog/watchdog.ko /home/gallen/documents/projects/Drivers/dev_watchdog/watchdog.o /home/gallen/documents/projects/Drivers/dev_watchdog/watchdog.mod.o
