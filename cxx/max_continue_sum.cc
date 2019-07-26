@@ -9,7 +9,7 @@ int max_continue_sum(int* a, int n) {
   int s = a[0];
   for (int i = 1; i < n; ++i) {
     s = std::max(s + a[i], a[i]);
-    m = (s > m ? s : m);
+    m = std::max(s, m);
   }
 
   return m;
