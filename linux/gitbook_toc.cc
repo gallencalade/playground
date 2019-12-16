@@ -17,6 +17,16 @@ void help() {
             << std::endl;
 }
 
+std::string read_file(const std::string& file) {
+  std::ifstream ifs(file, std::ios::binary);
+  if (!ifs.is_open()) {
+    throw std::runtime_error("Failed to open file: " + file);
+  }
+
+  return std::string((std::istreambuf_iterator<char>(ifs)),
+                     std::istreambuf_iterator<char>());
+}
+
 bool check_arg(int atgc, char* argv[]) {
   return true;
 }
