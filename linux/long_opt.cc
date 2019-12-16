@@ -17,7 +17,7 @@ void help() {
             << std::endl;
 }
 
-bool check_arg(int atgc, char* argv[]) {
+bool check_arg(int argc, char* argv[]) {
   return true;
 }
 
