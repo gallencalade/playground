@@ -9,26 +9,80 @@ using namespace std;
 
 void help() {
   std::cout << std::endl;
-  std::cout << "\tUsage: longopt [option] [param] ...\n"
-               "\t\t--option A, -a\tOption A.\n"
-               "\t\t--option B, -b\tOption B.\n"
-               "\t\t--option C, -c\tOption C.\n"
-               "\t\t--option D, -d\tOption D.\n"
+  std::cout << "\tGenerate toc in [TOC] field.\n"
+               "\tThe Header1(#) is not generated.\n"
+               "\tThe header # should be the first character of a line.\n"
+               "\n\tUsage: gitbook_toc [option] [param] ...\n"
+               "\t\t--input, -i\tInput file name.\n"
+               "\t\t--output, -o\tOutput file name.\n"
+               "\t\t--level, -c\tThe level to generate toc, 2 is default.\n"
             << std::endl;
 }
 
-std::string read_file(const std::string& file) {
-  std::ifstream ifs(file, std::ios::binary);
-  if (!ifs.is_open()) {
-    throw std::runtime_error("Failed to open file: " + file);
-  }
-
-  return std::string((std::istreambuf_iterator<char>(ifs)),
-                     std::istreambuf_iterator<char>());
+bool check_arg(int argc, char* argv[]) {
+  return true;
 }
 
-bool check_arg(int atgc, char* argv[]) {
-  return true;
+template<class ForwardIt, class T>
+void replace(ForwardIt first, ForwardIt last,
+             const T& old_value, const T& new_value) {
+  for (; first != last; ++first) {
+    if (*first == old_value) {
+      *first = new_value;
+    }
+  }
+}
+
+static std::string str_toc("[TOC]");
+
+int generate_toc(const std::string& file_input,
+                 const std::string& file_output,
+                 size_t level = 2) {
+
+  std::ifstream ifs(file_input, std::ios::binary);
+  if (!ifs.is_open()) {
+    std::cerr << "Failed to open " << file_input << std::endl;
+    return -1;
+  }
+  ifs.clear();
+  std::ofstream ofs(file_output, std::ios::binary);
+  if (!ofs.is_open()) {
+    std::cerr << "Failed to open " << file_output << std::endl;
+    return -1;
+  }
+  ofs.clear();
+
+  std::string line;
+  while (std::getline(ifs, line) && std::string::npos == line.find(str_toc)) {
+    ofs << line << std::endl;
+  }
+
+  auto pos_toc = ifs.tellg();
+  while (std::getline(ifs, line)) {
+    auto pos_sharp = line.find_first_of('#');
+    if (0 == pos_sharp) {
+      auto pos_not_sharp = line.find_first_not_of('#');
+      auto num_tab = pos_not_sharp - pos_sharp;
+      if (num_tab <= level) {
+        while (--num_tab) {
+          ofs << ' ';
+        }
+        ofs << "* ";
+        std::string header(line, pos_not_sharp);
+        replace(header.begin() + header.find_first_not_of(' '), header.end(),
+                ' ', '-');
+        ofs << header << std::endl;
+      }
+    }
+  }
+
+  ifs.seekg(pos_toc);
+  ofs << ifs.rdbuf();
+
+  ifs.clear();
+  ofs.clear();
+
+  return 0;
 }
 
 int main(int argc, char* argv[]) {
@@ -37,33 +91,28 @@ int main(int argc, char* argv[]) {
     return -1;
   }
 
-  const char* const shot_opts = "a:b:cd";
+  const char* const shot_opts = "i:o:l:";
   struct option long_opts[] = {
-    { "opta", 1, nullptr, 'a' },
-    { "optb", 1, nullptr, 'b' },
-    { "optc", 0, nullptr, 'c' },
-    { "optd", 0, nullptr, 'd' },
+    { "input", 1, nullptr, 'i' },
+    { "output", 1, nullptr, 'o' },
+    { "level", 0, nullptr, 'l' },
     { nullptr, 0, nullptr, 0 },
   };
 
-  std::string arg_a;
-  std::string arg_b;
-  bool arg_c = false;
-  bool arg_d = false;
+  std::string file_input;
+  std::string file_output;
+  int level = 2;
   char opt;
   while (-1 != (opt = getopt_long(argc, argv, shot_opts, long_opts, nullptr))) {
     switch (opt) {
-      case 'a':
-        arg_a.assign(optarg);
+      case 'i':
+        file_input.assign(optarg);
         break;
-      case 'b':
-        arg_b.assign(optarg);
+      case 'o':
+        file_output.assign(optarg);
         break;
-      case 'c':
-        arg_c = true;
-        break;
-      case 'd':
-        arg_d = true;
+      case 'l':
+        level = std::stoi(optarg);
         break;
       default:
         help();
@@ -71,10 +120,5 @@ int main(int argc, char* argv[]) {
     }
   }
 
-  std::cout << "Arg of option a is " << (arg_a.empty() ? "[empty]" : arg_a) << std::endl;
-  std::cout << "Arg of option b is " << (arg_b.empty() ? "[empty]" : arg_b) << std::endl;
-  std::cout << "Arg of option c is " << (arg_c ? "set" : "unset") << std::endl;
-  std::cout << "Arg of option d is " << (arg_d ? "set" : "unset") << std::endl;
-
-  return 0;
+  return generate_toc(file_input, file_output, level);
 }
