@@ -12,10 +12,10 @@ void help() {
   std::cout << "\tGenerate toc in [TOC] field.\n"
                "\tThe Header1(#) is not generated.\n"
                "\tThe header # should be the first character of a line.\n"
-               "\n\tUsage: gitbook_toc [option] [param] ...\n"
+               "\n\tUsage: gitbook_toc <option> <param> ...\n"
                "\t\t--input, -i\tInput file name.\n"
                "\t\t--output, -o\tOutput file name.\n"
-               "\t\t--level, -c\tThe level to generate toc, 2 is default.\n"
+               "\t\t--level, -c\tThe level to generate toc, 3 is default.\n"
             << std::endl;
 }
 
@@ -37,7 +37,7 @@ static std::string str_toc("[TOC]");
 
 int generate_toc(const std::string& file_input,
                  const std::string& file_output,
-                 size_t level = 2) {
+                 size_t level = 3) {
 
   std::ifstream ifs(file_input, std::ios::binary);
   if (!ifs.is_open()) {
@@ -65,22 +65,26 @@ int generate_toc(const std::string& file_input,
       auto num_tab = pos_not_sharp - pos_sharp;
       if (num_tab <= level) {
         while (--num_tab) {
-          ofs << ' ';
+          ofs << "  ";
         }
         ofs << "* ";
         std::string header(line, pos_not_sharp);
-        replace(header.begin() + header.find_first_not_of(' '), header.end(),
-                ' ', '-');
-        ofs << header << std::endl;
+        header.assign(header, header.find_first_not_of(' '), std::string::npos);
+        replace(header.begin(), header.end(), ' ', '-');
+        ofs << '[' << header << ']';
+        for (auto& a : header) {
+          if (a >= 65 && a <= 90) {
+            a += 32;
+          }
+        }
+        ofs << "(#" << header << ")" << std::endl;
       }
     }
   }
 
+  ifs.clear();
   ifs.seekg(pos_toc);
   ofs << ifs.rdbuf();
-
-  ifs.clear();
-  ofs.clear();
 
   return 0;
 }
@@ -101,7 +105,7 @@ int main(int argc, char* argv[]) {
 
   std::string file_input;
   std::string file_output;
-  int level = 2;
+  int level = 3;
   char opt;
   while (-1 != (opt = getopt_long(argc, argv, shot_opts, long_opts, nullptr))) {
     switch (opt) {

@@ -9,7 +9,7 @@ using namespace std;
 
 void help() {
   std::cout << std::endl;
-  std::cout << "\tUsage: longopt [option] [param] ...\n"
+  std::cout << "\tUsage: longopt <option> <param> ...\n"
                "\t\t--option A, -a\tOption A.\n"
                "\t\t--option B, -b\tOption B.\n"
                "\t\t--option C, -c\tOption C.\n"
