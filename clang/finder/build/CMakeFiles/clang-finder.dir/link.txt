@@ -1,0 +1,1 @@
+/usr/bin/c++     CMakeFiles/clang-finder.dir/finder.cc.o  -o clang-finder  -lclangTooling -lclangDriver -lclangFrontend -lclangSerialization -lclangParse -lclangSema -lclangEdit -lclangLex -lclangAnalysis -lclangASTMatchers -lclangAST -lclangBasic -lLLVM 

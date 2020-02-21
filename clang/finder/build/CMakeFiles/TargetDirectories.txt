@@ -1,0 +1,3 @@
+/media/gallencalade/Documents/projects/my_prjs/playground/clang/finder/build/CMakeFiles/rebuild_cache.dir
+/media/gallencalade/Documents/projects/my_prjs/playground/clang/finder/build/CMakeFiles/clang-finder.dir
+/media/gallencalade/Documents/projects/my_prjs/playground/clang/finder/build/CMakeFiles/edit_cache.dir
