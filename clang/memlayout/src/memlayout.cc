@@ -14,6 +14,7 @@ MemLayout::MemLayout(const clang::tooling::CompilationDatabase& compdb,
 }
 
 int MemLayout::FindNamedRecord(const std::string& name) {
+  std::cout << ">>>>>>>>>>>" << name << std::endl;
   std::vector<clang::ast_matchers::BoundNodes> bns;
   for (auto& a : asts_) {
     bns = NamespaceStructFinder::Run(a->getASTContext(), name);
@@ -52,12 +53,14 @@ int MemLayout::ParseRecordLayout(const std::string& name,
   const auto& layout = decl->getASTContext().getASTRecordLayout(decl);
   std::vector<FieldLayout> fields_layout;
   fields_layout.reserve(layout.getFieldCount());
+
   for (const auto* d : decl->decls()) {
     if (clang::Decl::Kind::CXXRecord == d->getKind()) {
       const auto* dd = static_cast<const clang::CXXRecordDecl*>(d);
       if (dd->hasDefinition()) {
         const auto& tstr = dd->getNameAsString();
         if (tstr.empty()) {    // no type name
+          std::cout << "000" << std::endl;
           std::string apps(name, 0, name.find("::(anonymous at"));
           apps.append(GetFileLineColumn(dd));
           ParseRecordLayout(apps, dd);
@@ -65,15 +68,19 @@ int MemLayout::ParseRecordLayout(const std::string& name,
           ParseRecordLayout(name + "::" + tstr, dd);
         }
       }
-    } else if (clang::Decl::Kind::Field == d->getKind()) {
-      const auto* dd = static_cast<const clang::FieldDecl*>(d);
-      auto offset = layout.getFieldOffset(dd->getFieldIndex()) / 8;
-      auto field = ParseField(dd, offset);
-      /*if (field.tycls != TYPECLASS::TC_FUNDAMENTAL) {
-        FindNamedRecord(field.type);
-      }*/
-      fields_layout.push_back(field);
     }
+  }
+
+  for (const auto* d : decl->fields()) {
+    std::string tstr = ::remove_prefix(d->getType().getDesugaredType(decl->getASTContext()).getAsString());
+    auto offset = layout.getFieldOffset(d->getFieldIndex()) / 8;
+    auto field = ParseField(d, offset);
+    if (field.tycls != TYPECLASS::TC_FUNDAMENTAL) {
+      if (record_layout_.find(tstr) == record_layout_.end()) {
+        FindNamedRecord(tstr);
+      }
+    }
+    fields_layout.push_back(field);
   }
 
   RecordLayout record;

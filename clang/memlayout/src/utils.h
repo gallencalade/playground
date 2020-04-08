@@ -16,7 +16,7 @@ inline std::string remove_prefix(const std::string& s) {
     ss.erase(0, sizeof("union ") - 1);
   }
   if (std::string::npos != ss.find("enum ")) {
-    ss.erase(0, sizeof("union ") - 1);
+    ss.erase(0, sizeof("enum ") - 1);
   }
 
   return ss;
