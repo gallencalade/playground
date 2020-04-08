@@ -26,7 +26,7 @@ struct NamespaceStructResult : MatchFinder::MatchCallback {
 
 } // namespace
 
-std::vector<BoundNodes> NamespaceStructFinder::Run(clang::ASTContext& ctx,
+std::vector<StructField> NamespaceStructFinder::Run(clang::ASTContext& ctx,
                                                     const std::string& st) {
   std::string s(st);
   auto ns = split_namespace_struct(s);
@@ -37,7 +37,6 @@ std::vector<BoundNodes> NamespaceStructFinder::Run(clang::ASTContext& ctx,
   }
   matchstr.append("cxxRecordDecl(hasName('" + s +"'),"
         "anyOf(isStruct(), isUnion()), hasDefinition()).bind('matched')");
-
   matchstr.append(ns.size() * 2, ')');  // two `(` in each namespace decl str
 
   Diagnostics Diag;
@@ -50,15 +49,12 @@ std::vector<BoundNodes> NamespaceStructFinder::Run(clang::ASTContext& ctx,
   MatchFinder finder;
   if (!finder.addDynamicMatcher(*matcher, &result)) {
     llvm::errs() << "Failed to add dynamic matcher\n";
+    return std::vector<StructField>();
   }
 
   finder.matchAST(ctx);
 
-  std::cout << bounds.size() << std::endl;
-
-  return bounds;
-
-/*  if (1 < bounds.size()) {
+  if (1 < bounds.size()) {
     llvm::errs() << "More than one definitions: " << bounds.size() << "\n";
     return std::vector<StructField>();
   }
@@ -68,26 +64,25 @@ std::vector<BoundNodes> NamespaceStructFinder::Run(clang::ASTContext& ctx,
     return std::vector<StructField>();
   }
 
-  const auto* decl = bounds.at(0).getNodeAs<clang::CXXRecordDecl>("matched");
+  const auto* decl = bounds[0].getNodeAs<clang::CXXRecordDecl>("matched");
+  for (const auto& f : decl->fields()) {
+    const auto& dtype = f->getType().getDesugaredType(decl->getASTContext());
+    bool b = dtype.getTypePtr()->isFundamentalType();
+    if (!b) {
+      auto d2 = f->getDefinition(decl->getASTContext());
+      for (const auto& f2 : d2->fields()) {
+        
+      }
+      std::cout << dtype.getAsString() << std::endl;
+    }
+  }
 
-  return GetStructFields(bounds[0]);*/
+  return GetStructFields(bounds[0]);
 }
 
-/*std::vector<StructField> NamespaceStructFinder::GetStructFields(
+std::vector<StructField> NamespaceStructFinder::GetStructFields(
       const clang::ast_matchers::BoundNodes& bn) {
-  // const auto* td = bn.getNodeAs<clang::TagDecl>("union")->getDefinition();
-  // td->dump();
-
   const auto* decl = bn.getNodeAs<clang::CXXRecordDecl>("matched");
-
-  for (auto* d : decl->decls()) {
-    if (d->getKind() == clang::Decl::Kind::CXXRecord) {
-      llvm::outs() << static_cast<clang::CXXRecordDecl*>(d)->getNameAsString() << "\n";
-    }
-    llvm::outs() << d->getDeclKindName() << "\n";
-  }
-  exit(0);
-
   const auto& l = decl->getASTContext().getASTRecordLayout(decl);
 
   std::vector<StructField> result;
@@ -120,4 +115,4 @@ std::vector<BoundNodes> NamespaceStructFinder::Run(clang::ASTContext& ctx,
   }
 
   return result;
-}*/
+}

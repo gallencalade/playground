@@ -31,8 +31,6 @@ enum E {
   E3,
 };
 
-using SS = nsa::nsb::Sub;
-
 struct Msg {
   char b;
   int a;
@@ -42,18 +40,15 @@ struct Msg {
   int c[20][40][80];
   double f[200][4];
   INT32 t32;
-  SS s;
-  union U {
+  nsa::nsb::Sub s;
+  union {
     int u1;
     char u2[4];
   } u;
   union {
     int u1;
     char u2[4];
-    struct {
-      int aa;
-    } cc;
-  } v;
+  };
   E e;
 };
 

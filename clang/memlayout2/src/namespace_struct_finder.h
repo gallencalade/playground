@@ -8,12 +8,12 @@
 
 class NamespaceStructFinder {
  public:
-  static std::vector<clang::ast_matchers::BoundNodes> Run(clang::ASTContext& ctx,
+  static std::vector<StructField> Run(clang::ASTContext& ctx,
                                       const std::string& st);
 
  private:
-/*  static std::vector<StructField> GetStructFields(
-        const clang::ast_matchers::BoundNodes& bn);*/
+  static std::vector<StructField> GetStructFields(
+        const clang::ast_matchers::BoundNodes& bn);
 };
 
 #endif  // MEMLAYOUT_SRC_NAMESPACE_STRUCT_FUNDER_H
