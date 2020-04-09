@@ -6,9 +6,13 @@
 "#include <map>\n"              \
 "#include \"record_layout.h\"\n"\
 "\n"                            \
+"namespace {\n"                 \
+"\n"                            \
 "static const std::map<std::string, RecordLayout> kMappedLayout = {\n"
 
 #define DUMP_FILE_TAIL          \
 " };\n"                         \
+"\n"                            \
+"}\t// namespace\n"             \
 "\n"                            \
 "#endif  // __MAPPED_LAYOUT_H__"
