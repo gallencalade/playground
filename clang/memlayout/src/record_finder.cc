@@ -3,7 +3,7 @@
 #include <clang/ASTMatchers/Dynamic/Parser.h>
 #include <clang/ASTMatchers/Dynamic/VariantValue.h>
 
-#include "namespace_struct_finder.h"
+#include "record_finder.h"
 #include "utils.h"
 
 #include <iostream>
@@ -24,23 +24,10 @@ struct NamespaceStructResult : MatchFinder::MatchCallback {
   std::vector<BoundNodes>& result;
 };
 
-std::vector<std::string> split_scope_name(std::string& s) {
-  std::vector<std::string> tokens;
-  size_t pos;
-  static const std::string d = "::";
-  while ((pos = s.find(d)) != std::string::npos) {
-    tokens.emplace_back(s.substr(0, pos));
-    s.erase(0, pos + d.length());
-  }
-
-  return tokens;
-}
-
 } // namespace
 
 std::vector<BoundNodes> NamespaceStructFinder::Run(clang::ASTContext& ctx,
                                                    const std::string& st) {
-  
 
   Diagnostics Diag;
   llvm::Optional<DynTypedMatcher> matcher = Parser::parseMatcherExpression(
@@ -60,7 +47,7 @@ std::vector<BoundNodes> NamespaceStructFinder::Run(clang::ASTContext& ctx,
   return bounds;
 }
 
-std::string NamespaceStructFinder::CXXRecordFinderStr(std::string s) {
+std::string NamespaceStructFinder::RecordFinderStr(std::string s) {
   auto ns = split_scope_name(s);
 
   std::string matchstr;
