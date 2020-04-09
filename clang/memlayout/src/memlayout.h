@@ -8,7 +8,6 @@
 #include <clang/Tooling/Tooling.h>
 
 #include "record_layout.h"
-#include "func_temp_arg_type_finder.h"
 
 class MemLayout {
   using MemLayoutMap = std::map<std::string, RecordLayout>;

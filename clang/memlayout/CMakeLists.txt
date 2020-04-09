@@ -10,6 +10,8 @@ include(AddClang)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+add_definitions(-Wall -Werror)
+
 add_executable(${PROJECT_NAME}
   src/main.cc
   src/memlayout.cc
