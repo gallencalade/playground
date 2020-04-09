@@ -32,6 +32,7 @@ int main(int argc, const char** argv) {
   for (const auto& [k, v] : layouts) {
     std::cout << "KEY  : " << k << std::endl;
     std::cout << "VALUE: " << v << std::endl;
+    std::cout << to_string(v) << std::endl;
   }
 
   return 0;
