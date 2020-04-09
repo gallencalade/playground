@@ -31,7 +31,7 @@ int dump_to_file(const std::map<std::string, RecordLayout>& l) {
 
   ofs << DUMP_FILE_HEAD;
   for (const auto& [k, v] : l) {
-    ofs << "{ \"" << k << "\", " << to_string(v) << " },\n";
+    ofs << "  { \"" << k << "\",\n    " << to_string(v) << "\n  },\n";
   }
   ofs << DUMP_FILE_TAIL;
 

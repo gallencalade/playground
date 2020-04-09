@@ -73,24 +73,26 @@ inline std::ostream& operator<<(std::ostream& os, const RecordLayout& r) {
 }
 
 inline std::string to_string(const FieldLayout& f) {
-  std::string s("{ \"" + f.type + "\", \"" + f.var + "\", " +
-                to_string(f.tycls) + ", " + std::to_string(f.offset) + ", { ");
+  std::string s("        { \"" + f.type + "\",\n          \"" + f.var +
+                "\",\n          " + to_string(f.tycls) + ",\n          " +
+                std::to_string(f.offset) + ",\n          { ");
   for (size_t i = 0; i < f.dim.size(); ++i) {
     s.append(std::to_string(f.dim[i]));
     s.append(", ");
   }
-  s.append("} }");
+  s.append("}\n        }");
 
   return s;
 }
 
 inline std::string to_string(const RecordLayout& r) {
-  std::string s("{ \"" + r.name + "\", " + to_string(r.tycls) + ", { ");
+  std::string s("{ \"" + r.name + "\",\n      " + to_string(r.tycls) +
+                ",\n      {\n");
   for (size_t i = 0; i < r.fields.size(); ++i) {
     s.append(to_string(r.fields[i]));
-    s.append(", ");
+    s.append(",\n");
   }
-  s.append("} }");
+  s.append("      }\n    }");
 
   return s;
 }
