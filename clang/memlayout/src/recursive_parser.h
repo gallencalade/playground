@@ -17,18 +17,16 @@ class RecursiveParser {
   int ParseRecordLayout(const std::string& name,
                         const clang::CXXRecordDecl* decl);
 
-  int FindNamedRecord(const std::string& name);
+  int ParseEnum(const std::string& name);
 
-
-  FieldLayout ParseField(const clang::FieldDecl* decl, uint32_t offset);
-
- private:
   static std::string GetFileLineColumnStr(const clang::CXXRecordDecl* d);
+
   static TYPECLASS TypeCheck(const clang::Type* t);
 
-  int HandleCXXRecordKind();
+  int HandleNestedRecordKind(const std::string& name,
+                             const clang::CXXRecordDecl* d);
 
-  int HandleField();
+  FieldLayout HandleField(const clang::FieldDecl* decl, uint32_t offset);
 
  private:
   clang::ASTContext& astctx_;

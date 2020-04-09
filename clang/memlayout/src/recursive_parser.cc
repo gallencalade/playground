@@ -47,36 +47,37 @@ int RecursiveParser::ParseRecordLayout(const std::string& name,
     return 0;
   }
 
-  const auto& layout = decl->getASTContext().getASTRecordLayout(decl);
-  std::vector<FieldLayout> fields_layout;
-  fields_layout.reserve(layout.getFieldCount());
-
+  // handles nested types declared in record scope
   for (const auto* d : decl->decls()) {
     if (clang::Decl::Kind::CXXRecord == d->getKind()) {
       const auto* dd = static_cast<const clang::CXXRecordDecl*>(d);
-      if (dd->hasDefinition()) {
-        const auto& tstr = dd->getNameAsString();
-        if (tstr.empty()) {    // no type name
-          std::string apps(name, 0, name.find("::(anonymous at"));
-          apps.append(GetFileLineColumnStr(dd));
-          ParseRecordLayout(apps, dd);
-        } else {
-          ParseRecordLayout(name + "::" + tstr, dd);
-        }
+      if (0 != HandleNestedRecordKind(name, dd)) {
+        return -1;
       }
     }
   }
 
+  // handles fields in record scope and caculates layouts
+  const auto& layout = decl->getASTContext().getASTRecordLayout(decl);
+  std::vector<FieldLayout> fields_layout;
+  fields_layout.reserve(layout.getFieldCount());
+
   for (const auto* d : decl->fields()) {
-    if (d->getType().getTypePtr()->isEnumeralType()) {
-      auto bns = DynamicFinder::Find<DynamicFinder::EnumFinderStr>(decl->getASTContext(), name);
+    const auto* ptype = d->getType().getTypePtr();
+    if (ptype->isEnumeralType()) {
+      if (0 != ParseEnum(d->getType().getAsString())) {
+        return -1;
+      }
     } else {
-      std::string tstr = ::remove_type_qualifier(d->getType().getDesugaredType(decl->getASTContext()).getAsString());
+      std::string tstr = remove_type_qualifier(
+            d->getType().getDesugaredType(decl->getASTContext()).getAsString());
       auto offset = layout.getFieldOffset(d->getFieldIndex()) / 8;
-      auto field = ParseField(d, offset);
+      auto field = HandleField(d, offset);
       if (field.tycls != TYPECLASS::TC_FUNDAMENTAL) {
         if (record_layout_.find(tstr) == record_layout_.end()) {
-          Parse(tstr);
+          if (0 != Parse(tstr)) {
+            return -1;
+          }
         }
       }
       fields_layout.push_back(field);
@@ -93,8 +94,41 @@ int RecursiveParser::ParseRecordLayout(const std::string& name,
   return 0;
 }
 
-FieldLayout RecursiveParser::ParseField(const clang::FieldDecl* decl,
-                                        uint32_t offset) {
+int RecursiveParser::ParseEnum(const std::string& name) {
+  auto rname = remove_type_qualifier(name);
+  auto bns = DynamicFinder::Find<DynamicFinder::EnumFinderStr>(astctx_, rname);
+  if (bns.empty()) {
+    return 1;   // not found in this astctx_;
+  }
+  if (bns.size() > 1) {
+    llvm::errs() << "There might be muti definitions of " << name << "\n";
+    return -1;
+  }
+
+  const auto* decl = bns.at(0).getNodeAs<clang::EnumDecl>("matched");
+  for (const auto& e : decl->enumerators()) {
+    
+  }
+}
+
+int RecursiveParser::HandleNestedRecordKind(const std::string& name,
+                                            const clang::CXXRecordDecl* d) {
+  if (d->hasDefinition()) {
+    const auto& tstr = d->getNameAsString();
+    if (tstr.empty()) {    // no type name
+      std::string apps(name, 0, name.find("::(anonymous at"));
+      apps.append(GetFileLineColumnStr(d));
+      return ParseRecordLayout(apps, d);
+    } else {
+      return ParseRecordLayout(name + "::" + tstr, d);
+    }
+  }
+
+  return 0;
+}
+
+FieldLayout RecursiveParser::HandleField(const clang::FieldDecl* decl,
+                                         uint32_t offset) {
   const auto& dtype = decl->getType().getDesugaredType(decl->getASTContext());
   const auto* ptype = dtype.getTypePtr();
 
@@ -136,7 +170,7 @@ std::string RecursiveParser::GetFileLineColumnStr(
 TYPECLASS RecursiveParser::TypeCheck(const clang::Type* t) {
   if (t->isFundamentalType()) { return TYPECLASS::TC_FUNDAMENTAL; }
   if (t->isUnionType()) { return TYPECLASS::TC_UNION; }
-  if (t->isStructureOrClassType()) { return TYPECLASS::TC_STRUCT; }
+  if (t->isStructureType()) { return TYPECLASS::TC_STRUCT; }
   if (t->isEnumeralType()) { return TYPECLASS::TC_ENUM; }
 
   return TYPECLASS::TC_UNKNOWN;
