@@ -73,21 +73,26 @@ inline std::ostream& operator<<(std::ostream& os, const RecordLayout& r) {
 }
 
 inline std::string to_string(const FieldLayout& f) {
-  std::string s("        { \"" + f.type + "\",\n          \"" + f.var +
-                "\",\n          " + to_string(f.tycls) + ",\n          " +
-                std::to_string(f.offset) + ",\n          { ");
+  std::string s(
+        "        { \"" + f.type +"\",\t// < field type name\n"
+        "          \"" + f.var + "\",\t// < variable name\n"
+        "          " + to_string(f.tycls) + ",\t// < type enum\n"
+        "          " + std::to_string(f.offset) + ",\t// < integer for enum / offset for others\n"
+        "          { ");
   for (size_t i = 0; i < f.dim.size(); ++i) {
     s.append(std::to_string(f.dim[i]));
     s.append(", ");
   }
-  s.append("}\n        }");
+  s.append("}\t// < dimension\n"
+           "        }");
 
   return s;
 }
 
 inline std::string to_string(const RecordLayout& r) {
-  std::string s("{ \"" + r.name + "\",\n      " + to_string(r.tycls) +
-                ",\n      {\n");
+  std::string s("{ \"" + r.name + "\",\t// < record type name\n"
+        "      " + to_string(r.tycls) + ",\t// < type enum\n"
+        "      {\t// < fields\n");
   for (size_t i = 0; i < r.fields.size(); ++i) {
     s.append(to_string(r.fields[i]));
     s.append(",\n");
