@@ -14,7 +14,6 @@ MemLayout::MemLayout(const clang::tooling::CompilationDatabase& compdb,
 }
 
 int MemLayout::FindNamedRecord(const std::string& name) {
-  std::cout << ">>>>>>>>>>>" << name << std::endl;
   std::vector<clang::ast_matchers::BoundNodes> bns;
   for (auto& a : asts_) {
     bns = NamespaceStructFinder::Run(a->getASTContext(), name);
@@ -26,8 +25,6 @@ int MemLayout::FindNamedRecord(const std::string& name) {
 
   return 0;
 }
-
-// ParseEnumLayout
 
 static std::string GetFileLineColumn(const clang::CXXRecordDecl* d) {
   const auto& ctx = d->getASTContext();
@@ -72,6 +69,10 @@ int MemLayout::ParseRecordLayout(const std::string& name,
   }
 
   for (const auto* d : decl->fields()) {
+    if (d->getType().getTypePtr()->isEnumeralType()) {
+      std::cout << "ENUM" << std::endl;
+      break;
+    }
     std::string tstr = ::remove_prefix(d->getType().getDesugaredType(decl->getASTContext()).getAsString());
     auto offset = layout.getFieldOffset(d->getFieldIndex()) / 8;
     auto field = ParseField(d, offset);

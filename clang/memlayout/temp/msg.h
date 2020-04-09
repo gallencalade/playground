@@ -54,6 +54,7 @@ struct Msg {
       int aa;
     } cc;
   } v;
+  E e;
 };
 
 }
