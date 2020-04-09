@@ -18,8 +18,8 @@ struct FieldLayout {
   std::string type;   // type name: int, char, classA, structB, ...
   std::string var;
   TYPECLASS tycls;
-  uint32_t offset;
-  std::vector<uint32_t> dim;
+  int32_t offset;    // number for enum, but offset for others
+  std::vector<int32_t> dim;    // 1 as default
 };
 
 /**

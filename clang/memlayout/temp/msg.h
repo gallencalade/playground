@@ -25,9 +25,9 @@ namespace ns1 {
 
 namespace ns2 {
 
-enum E {
+enum E : uint64_t {
   E1,
-  E2,
+  E2 = 200,
   E3,
 };
 

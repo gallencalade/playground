@@ -4,8 +4,6 @@
 #include "dynamic_finder.h"
 #include "recursive_parser.h"
 
-#include <iostream>
-
 MemLayout::MemLayout(const clang::tooling::CompilationDatabase& compdb,
                      const std::vector<std::string>& files)
     : tool_(compdb, files) {
@@ -33,12 +31,17 @@ int MemLayout::RecordLayoutQuery(const std::string& name,
   int status = -1;
   for (auto& a : asts_) {
     RecursiveParser parser(a->getASTContext(), lm);
-    if (-1 == (status = parser.Parse(name))) {
+    if (-1 == (status = parser.ParseNamedRecord(name))) {
       return -1;
     }
   }
 
-  return (0 == status ? 0 : -1);
+  if (1 == status) {
+    llvm::errs() << "Failed to find " << name << " difinition\n";
+    return -1;
+  }
+
+  return 0;
 }
 
 std::set<std::string> MemLayout::FuncTempArgTypeQuery(const std::string& fn) {

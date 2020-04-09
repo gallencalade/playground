@@ -6,8 +6,6 @@
 #include <clang/ASTMatchers/Dynamic/Parser.h>
 #include <clang/Frontend/ASTUnit.h>
 
-#include <iostream>
-
 namespace {
 
 using namespace clang::ast_matchers;
@@ -18,7 +16,6 @@ struct DynamicFinderResult : MatchFinder::MatchCallback {
 
   void run(const MatchFinder::MatchResult& r) override {
     result.push_back(r.Nodes);
-    std::cout << "?????????????" << std::endl;
   }
 
   std::vector<BoundNodes>& result;
@@ -47,7 +44,6 @@ class DynamicFinder {
     using namespace clang::ast_matchers::dynamic;
 
     std::string matchstr = Fn()(st);
-    std::cout << matchstr << std::endl;
 
     Diagnostics Diag;
     llvm::Optional<DynTypedMatcher> matcher = Parser::parseMatcherExpression(
@@ -110,8 +106,7 @@ class DynamicFinder {
       for (const auto& a : ns) {
         matchstr.append("namedDecl(hasName('" + a + "'), has(");
       }
-      matchstr.append("enumDecl(hasName('" + s +"'), "
-                      "hasDefinition()).bind('matched')");
+      matchstr.append("enumDecl(hasName('" + s +"')).bind('matched')");
       matchstr.append(ns.size() * 2, ')');  // two `(` in each namespace decl str
 
       return matchstr;

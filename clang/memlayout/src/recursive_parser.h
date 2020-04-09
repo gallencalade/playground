@@ -11,7 +11,7 @@ class RecursiveParser {
                            std::map<std::string, RecordLayout>& rl)
       : astctx_(ctx), record_layout_(rl) {  }
 
-  int Parse(const std::string& name);
+  int ParseNamedRecord(const std::string& name);
 
  private:
   int ParseRecordLayout(const std::string& name,
@@ -26,7 +26,7 @@ class RecursiveParser {
   int HandleNestedRecordKind(const std::string& name,
                              const clang::CXXRecordDecl* d);
 
-  FieldLayout HandleField(const clang::FieldDecl* decl, uint32_t offset);
+  FieldLayout HandleField(const clang::FieldDecl* decl, int32_t offset);
 
  private:
   clang::ASTContext& astctx_;
