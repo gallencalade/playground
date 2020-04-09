@@ -1,9 +1,11 @@
 #include <iostream>
+#include <fstream>
 
 #include <clang/Tooling/CommonOptionsParser.h>
 #include <llvm/Support/CommandLine.h>
 
 #include "memlayout.h"
+#include "dumpfile.h"
 
 static llvm::cl::OptionCategory MemLayoutOptCategory("memlayout options");
 
@@ -20,6 +22,22 @@ static llvm::cl::opt<std::string> Func("func",
 static llvm::cl::extrahelp CommonHelp(
       clang::tooling::CommonOptionsParser::HelpMessage);
 
+int dump_to_file(const std::map<std::string, RecordLayout>& l) {
+  std::ofstream ofs("mapped_layout.h", std::ios::binary);
+  if (!ofs.is_open()) {
+    std::cerr << "Failed to open mapped_layout.h" << std::endl;
+    return -1;
+  }
+
+  ofs << DUMP_FILE_HEAD;
+  for (const auto& [k, v] : l) {
+    ofs << "{ \"" << k << "\", " << to_string(v) << " },\n";
+  }
+  ofs << DUMP_FILE_TAIL;
+
+  return 0;
+}
+
 int main(int argc, const char** argv) {
   clang::tooling::CommonOptionsParser optionsParser(argc, argv,
                                                     MemLayoutOptCategory);
@@ -32,8 +50,7 @@ int main(int argc, const char** argv) {
   for (const auto& [k, v] : layouts) {
     std::cout << "KEY  : " << k << std::endl;
     std::cout << "VALUE: " << v << std::endl;
-    std::cout << to_string(v) << std::endl;
   }
 
-  return 0;
+  return dump_to_file(layouts);
 }

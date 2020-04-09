@@ -77,9 +77,9 @@ inline std::string to_string(const FieldLayout& f) {
                 to_string(f.tycls) + ", " + std::to_string(f.offset) + ", { ");
   for (size_t i = 0; i < f.dim.size(); ++i) {
     s.append(std::to_string(f.dim[i]));
-    s.append((i == f.dim.size() - 1) ? "" : ", ");
+    s.append(", ");
   }
-  s.append(" } }");
+  s.append("} }");
 
   return s;
 }
@@ -88,9 +88,9 @@ inline std::string to_string(const RecordLayout& r) {
   std::string s("{ \"" + r.name + "\", " + to_string(r.tycls) + ", { ");
   for (size_t i = 0; i < r.fields.size(); ++i) {
     s.append(to_string(r.fields[i]));
-    s.append((i == r.fields.size() - 1) ? "" : ", ");
+    s.append(", ");
   }
-  s.append(" } };");
+  s.append("} }");
 
   return s;
 }
