@@ -1,37 +1,38 @@
 #ifndef MEMLAYOUT_SRC_RECURSIVE_PARSER_H
 #define MEMLAYOUT_SRC_RECURSIVE_PARSER_H
 
-#include <map>
-#include <string>
-#include <vector>
+#include <clang/Frontend/ASTUnit.h>
 
-enum TYPECLASS {
-  TC_UNKNOWN = 0,
-  TC_UNION,
-  TC_STRUCT,
-  TC_FUNDAMENTAL,
-  TC_ENUM,
-};
-
-struct FieldLayout {
-  std::string name;   // variable name
-  std::string type;   // type name: int, char, classA, structB, ...
-  TYPECLASS tycls;
-  uint32_t offset;
-  std::vector<uint32_t> dim;
-};
-
-struct RecordLayout {
-  std::string name;   // classA, structB, unionC, ...
-  TYPECLASS tycls;
-  std::vector<FieldLayout> fields;
-};
+#include "record_layout.h"
 
 class RecursiveParser {
  public:
+  explicit RecursiveParser(clang::ASTContext& ctx,
+                           std::map<std::string, RecordLayout>& rl)
+      : astctx_(ctx), record_layout_(rl) {  }
+
+  int Parse(const std::string& name);
 
  private:
-  std::map<std::string, RecordLayout> record_layout_;
+  int ParseRecordLayout(const std::string& name,
+                        const clang::CXXRecordDecl* decl);
+
+  int FindNamedRecord(const std::string& name);
+
+
+  FieldLayout ParseField(const clang::FieldDecl* decl, uint32_t offset);
+
+ private:
+  static std::string GetFileLineColumnStr(const clang::CXXRecordDecl* d);
+  static TYPECLASS TypeCheck(const clang::Type* t);
+
+  int HandleCXXRecordKind();
+
+  int HandleField();
+
+ private:
+  clang::ASTContext& astctx_;
+  std::map<std::string, RecordLayout>& record_layout_;
 };
 
 #endif  // MEMLAYOUT_SRC_RECURSIVE_PARSER_H

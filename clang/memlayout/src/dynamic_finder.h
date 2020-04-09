@@ -6,6 +6,8 @@
 #include <clang/ASTMatchers/Dynamic/Parser.h>
 #include <clang/Frontend/ASTUnit.h>
 
+#include <iostream>
+
 namespace {
 
 using namespace clang::ast_matchers;
@@ -16,6 +18,7 @@ struct DynamicFinderResult : MatchFinder::MatchCallback {
 
   void run(const MatchFinder::MatchResult& r) override {
     result.push_back(r.Nodes);
+    std::cout << "?????????????" << std::endl;
   }
 
   std::vector<BoundNodes>& result;
@@ -38,12 +41,13 @@ std::vector<std::string> split_scope_name(std::string& s) {
 class DynamicFinder {
  public:
   template <typename Fn>
-  static std::vector<clang::ast_matchers::BoundNodes> Run(
+  static std::vector<clang::ast_matchers::BoundNodes> Find(
         clang::ASTContext& ctx, const std::string& st) {
     using namespace clang::ast_matchers;
     using namespace clang::ast_matchers::dynamic;
 
-    std::string matchstr = Fn(st);
+    std::string matchstr = Fn()(st);
+    std::cout << matchstr << std::endl;
 
     Diagnostics Diag;
     llvm::Optional<DynTypedMatcher> matcher = Parser::parseMatcherExpression(
@@ -63,33 +67,56 @@ class DynamicFinder {
     return bounds;
   }
 
-  static std::string RecordFinderStr(std::string s) {
-    auto ns = split_scope_name(s);
+  class FuncTempArgTypeFinderStr {
+   public:
+    std::string operator()(std::string s) {
+      auto ns = split_scope_name(s);
 
-    std::string matchstr;
-    for (const auto& a : ns) {
-      matchstr.append("namedDecl(hasName('" + a + "'), has(");
+      std::string matchstr;
+      for (const auto& a : ns) {
+        matchstr.append("namedDecl(hasName('" + a + "'), has(");
+      }
+      matchstr.append("functionDecl(hasName('" + s +"'), "
+            "hasTemplateArgument(0, templateArgument().bind('matched')))");
+      matchstr.append(ns.size() * 2, ')');  // two `(` in each namespace decl str
+
+      return matchstr;
     }
-    matchstr.append("cxxRecordDecl(hasName('" + s +"'),"
-          "anyOf(isStruct(), isUnion()), hasDefinition()).bind('matched')");
-    matchstr.append(ns.size() * 2, ')');  // two `(` in each namespace decl str
+  };
 
-    return matchstr;
-  }
+  class RecordFinderStr {
+   public:
+    std::string operator()(std::string s) {
+      auto ns = split_scope_name(s);
 
-  static std::string EnumFinderStr(std::string s) {
-    auto ns = split_scope_name(s);
+      std::string matchstr;
+      for (const auto& a : ns) {
+        matchstr.append("namedDecl(hasName('" + a + "'), has(");
+      }
+      matchstr.append("cxxRecordDecl(hasName('" + s +"'), "
+            "anyOf(isStruct(), isUnion()), hasDefinition()).bind('matched')");
+      matchstr.append(ns.size() * 2, ')');  // two `(` in each namespace decl str
 
-    std::string matchstr;
-    for (const auto& a : ns) {
-      matchstr.append("namedDecl(hasName('" + a + "'), has(");
+      return matchstr;
     }
-    matchstr.append("enumDecl(hasName('" + s +"'), "
-                    "hasDefinition()).bind('matched')");
-    matchstr.append(ns.size() * 2, ')');  // two `(` in each namespace decl str
+  };
 
-    return matchstr;
-  }
+  class EnumFinderStr {
+   public:
+    std::string operator()(std::string s) {
+      auto ns = split_scope_name(s);
+
+      std::string matchstr;
+      for (const auto& a : ns) {
+        matchstr.append("namedDecl(hasName('" + a + "'), has(");
+      }
+      matchstr.append("enumDecl(hasName('" + s +"'), "
+                      "hasDefinition()).bind('matched')");
+      matchstr.append(ns.size() * 2, ')');  // two `(` in each namespace decl str
+
+      return matchstr;
+    }
+  };
 };
 
 #endif  // MEMLAYOUT_SRC_DYNAMIC_FINDER_H

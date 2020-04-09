@@ -4,7 +4,6 @@
 #include <llvm/Support/CommandLine.h>
 
 #include "memlayout.h"
-#include "utils.h"
 
 static llvm::cl::OptionCategory MemLayoutOptCategory("memlayout options");
 
@@ -28,12 +27,11 @@ int main(int argc, const char** argv) {
   MemLayout memlayout(compilations, compilations.getAllFiles());
                                  // optionsParser.getSourcePathList());
 
-  auto layouts = memlayout.Run();
-  for (const auto& a : layouts) {
-    std::cout << a.first << std::endl;
-    for (const auto& b : a.second) {
-      std::cout << b << std::endl;
-    }
+  const std::vector<std::string> func_names{ "publish", "subscribe" };
+  auto layouts = memlayout.Run(func_names);
+  for (const auto& [k, v] : layouts) {
+    std::cout << "KEY  : " << k << std::endl;
+    std::cout << "VALUE: " << v << std::endl;
   }
 
   return 0;

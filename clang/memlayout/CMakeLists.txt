@@ -13,8 +13,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 add_executable(${PROJECT_NAME}
   src/main.cc
   src/memlayout.cc
-  src/func_temp_arg_type_finder.cc
-  src/namespace_struct_finder.cc)
+  src/recursive_parser.cc)
 
 set(CLANG_LIBS
   clangTooling

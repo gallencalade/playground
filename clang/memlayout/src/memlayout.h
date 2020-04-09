@@ -9,36 +9,22 @@
 
 #include "record_layout.h"
 #include "func_temp_arg_type_finder.h"
-#include "namespace_struct_finder.h"
 
 class MemLayout {
+  using MemLayoutMap = std::map<std::string, RecordLayout>;
+
  public:
   MemLayout(const clang::tooling::CompilationDatabase& compdb,
             const std::vector<std::string>& files);
 
-  int ParseRecordLayout(const std::string& name,
-        const clang::CXXRecordDecl* decl);
-
-  int FindNamedRecord(const std::string& name);
-
-
-  static TYPECLASS TypeCheck(const clang::Type* t);
-
-  FieldLayout ParseField(const clang::FieldDecl* decl, uint32_t offset);
-
-  std::map<std::string, std::vector<StructField>> Run();
+  MemLayoutMap Run(const std::vector<std::string>& funcname);
 
  private:
-/*  int RecursiveParse(const std::string& st,
-      std::map<std::string, std::vector<StructField>>& mapper);
-*/
-  std::set<std::string> FuncTempArgTypeQuery();
+  std::set<std::string> FuncTempArgTypeQuery(const std::string& fn);
 
-  std::vector<StructField> NamespaceStructLayoutQuery(const std::string& st);
+  int RecordLayoutQuery(const std::string& name, MemLayoutMap& lm);
 
  private:
-  std::map<std::string, RecordLayout> record_layout_;
-
   clang::tooling::ClangTool tool_;
   std::vector<std::unique_ptr<clang::ASTUnit>> asts_;
 };
