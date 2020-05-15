@@ -14,11 +14,8 @@ using namespace clang::ast_matchers;
 class DumpCheck : public MatchFinder::MatchCallback {
   virtual void run(const MatchFinder::MatchResult& result) override {
     const auto* decl = result.Nodes.getNodeAs<CXXRecordDecl>("matched");
-    for (const auto& f : decl->fields()) {
-      llvm::outs() << f->getType().getAsString() << "\n";
-      llvm::outs() << f->getType().getTypePtr() << "\n";
-      llvm::outs() << f->getType().getTypePtr()->isPointerType() << "\n";
-    }
+    auto name = decl->getNameAsString();
+    std::cout << name << std::endl;
     decl->dump();
   }
 };
@@ -35,7 +32,8 @@ int main(int argc, char* argv[]) {
 
   DumpCheck checker;
   MatchFinder finder;
-  finder.addMatcher(cxxRecordDecl().bind("matched"), &checker);
+  finder.addMatcher(cxxRecordDecl(hasName("Msg"),
+                                  has(templateSpecializationType(hasTemplateArgument(0, templateArgument().bind("matched"))))), &checker);
 
   std::unique_ptr<FrontendActionFactory> factory(
         newFrontendActionFactory(&finder));
