@@ -11,14 +11,15 @@ class StructPointer {
   StructPointer(StructPointer&& sp) {
     if (this != &sp) {
       ptr_ = sp.ptr_;
-      pdata_ = sp.pdata_;
       sp.ptr_ = nullptr;
+      pdata_ = sp.pdata_;
+      sp.pdata_ = nullptr;
     }
   }
 
   StructPointer& operator=(const StructPointer&) = delete;
 
-  ~StructPointer()  = default;
+  ~StructPointer() = default;
 
   template <typename T>
   void InitAs() {
@@ -39,6 +40,14 @@ class StructPointer {
   }
 
   template <typename T>
+  const T* GetAs() const {
+    if (nullptr == ptr_ && nullptr != pdata_) {
+      ptr_ = new T(pdata_);
+    }
+    return (T*)ptr_;
+  }
+
+  template <typename T>
   T* GetAs() {
     if (nullptr == ptr_ && nullptr != pdata_) {
       ptr_ = new T(pdata_);
@@ -47,20 +56,23 @@ class StructPointer {
   }
 
   template <typename T>
-  void SetAs(const T* p) { memcpy(ptr_, p, sizeof(T)); }    // shallow copy ??
-
-  template <typename T>
-  void SetAs(const T& p) { memcpy(ptr_, &p, sizeof(T)); }   // shallow copy ??
+  void SetAs(const T* p) {
+    if (p != ptr_) {
+      std::cerr << "unimplemented!" << std::endl;
+    }
+  }    // shallow copy ??
 
   bool IsNull() const { return nullptr == ptr_; }
 
  private:
   const unsigned char* pdata_ = nullptr;
-  void* ptr_ = nullptr;
+  mutable void* ptr_ = nullptr;
 };
 
 
 class Street {
+  friend class StructPointer;
+
  public:
   Street() : writable_(true),
              data_size_(sizeof(uint64_t)),           // << This is sizeof(a)
@@ -101,7 +113,7 @@ class Street {
 
   bool has_a() const { return (0 < data_size_ ? true : false); }   // << 0 is offset of a
 
-  uint64_t get_a() { return *(uint64_t*)(data_ + 0); }             // << 0 is offset of a
+  uint64_t get_a() const { return *(uint64_t*)(data_ + 0); }       // << 0 is offset of a
 
   void set_a(uint64_t l) { *(uint64_t*)(data_ + 0) = l; }          // << 0 is offset of a
 
@@ -116,6 +128,8 @@ class Street {
 
 
 class House {
+  friend class StructPointer;
+
  public:
   House() : writable_(true),
             data_size_(sizeof(uint64_t)),           // << This is sizeof(location)
@@ -168,7 +182,7 @@ class House {
 
   bool has_location() const { return (0 < data_size_ ? true : false); }   // << 0 is offset of a
 
-  uint64_t get_location() { return *(uint64_t*)(data_ + 0); }             // << 0 is offset of a
+  uint64_t get_location() const { return *(uint64_t*)(data_ + 0); }       // << 0 is offset of a
 
   void set_location(uint64_t l) { *(uint64_t*)(data_ + 0) = l; }          // << 0 is offset of a
 
@@ -176,9 +190,13 @@ class House {
 
   Street* get_street() {
     return (0 < pointers_.size() ? pointers_[0].GetAs<Street>() : nullptr);
-  }// Should not be writable
+  }
 
-  void set_street(const Street& h) { if (has_street()) pointers_[0].SetAs<Street>(h); }
+  const Street* get_street() const {
+    return (0 < pointers_.size() ? pointers_[0].GetAs<Street>() : nullptr);
+  }
+
+  void set_street(const Street* h) { if (has_street()) pointers_[0].SetAs<Street>(h); }
 
  private:
   // uint64_t location;
@@ -194,6 +212,8 @@ class House {
 
 
 class Person {
+  friend class StructPointer;
+
  public:
   Person() : writable_(true),
              data_size_(sizeof(uint64_t)),   // sizeof(a)
@@ -257,19 +277,26 @@ class Person {
 
   bool has_house1() const { return (0 < pointers_.size()); }
 
+  const House* get_house1() const {
+    return (0 < pointers_.size() ? pointers_[0].GetAs<House>() : nullptr);
+  }
+
   House* get_house1() {
     return (0 < pointers_.size() ? pointers_[0].GetAs<House>() : nullptr);
-  }// Should not be writable
+  }
 
-  void set_house1(const House& h) { if (has_house1()) pointers_[0].SetAs<House>(h); }
+  void set_house1(const House* h) { if (has_house1()) pointers_[0].SetAs<House>(h); }
 
   bool has_house2() const { return (1 < pointers_.size()); }
 
   House* get_house2() {
     return (0 < pointers_.size() ? pointers_[1].GetAs<House>() : nullptr);
-  }// Should not be writable
+  }
 
-  void set_house2(const House& h) { if (has_house2()) pointers_[1].SetAs<House>(h); }
+  const House* get_house2() const {
+    return (0 < pointers_.size() ? pointers_[1].GetAs<House>() : nullptr);
+  }
+  void set_house2(const House* h) { if (has_house2()) pointers_[1].SetAs<House>(h); }
 
  private:
   // uint64_t id;
@@ -282,12 +309,28 @@ class Person {
   std::vector<StructPointer> pointers_;
 };
 
+void print(const Person& p) {
+  std::cout << "get_id: " << p.get_id() << std::endl;
+  std::cout << "has_house1: " << p.has_house1() << std::endl;
+  std::cout << "get_house1->get_location: " << p.get_house1()->get_location() << std::endl;
+  std::cout << "get_house1->get_street->get_a: " << p.get_house1()->get_street()->get_a() << std::endl;
+  std::cout << "has_house2: " << p.has_house2() << std::endl;
+  std::cout << "get_house2->get_location: " << p.get_house2()->get_location() << std::endl;
+  std::cout << "get_house2->get_street->get_a: " << p.get_house2()->get_street()->get_a() << std::endl;
+}
 
 int main() {
   Person ps;
-  ps.set_id(10);
+  ps.set_id(20);
   auto* h = ps.get_house1();
   h->set_location(123);
+  h->get_street()->set_a(6);
+  ps.set_house1(h);
+  House* h2 = ps.get_house2();
+  h2->set_location(456);
+  h2->get_street()->set_a(8);
+  ps.set_house2(h2);
+  print(ps);
 
   unsigned char buf[sizeof(uint64_t) * 20] = { 0 };
   uint64_t* ptr = (uint64_t*)buf;
@@ -313,13 +356,7 @@ int main() {
   ptr[19] = 999;
 
   Person pd(buf);
-  std::cout << pd.get_id() << std::endl;
-  std::cout << pd.has_house1() << std::endl;
-  std::cout << pd.get_house1()->get_location() << std::endl;
-  std::cout << pd.get_house1()->get_street()->get_a() << std::endl;
-  std::cout << pd.has_house2() << std::endl;
-  std::cout << pd.get_house2()->get_location() << std::endl;
-  std::cout << pd.get_house2()->get_street()->get_a() << std::endl;
+  print(pd);
 
   return 0;
 }
