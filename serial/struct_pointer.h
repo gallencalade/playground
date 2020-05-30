@@ -3,6 +3,7 @@
 
 #include <iostream>
 #include <cstdint>
+#include <cstring>
 #include <type_traits>
 
 template <typename T>
@@ -56,45 +57,64 @@ class alignas(8) StructPointer {
 template <typename T>
 class Vector {
  public:
-  explicit Vector(uint32_t num) : num_(num), size_(sizeof(T)), ptr_(new T()) {  }
+  explicit Vector(uint32_t num) : own_(true), num_(num), ptr_(new T[num_]) {  }
+
+  ~Vector() { if (own_) { delete[] ptr_; } }
 
   uint32_t DataSize() const {
-    return sizeof(Vector) + num_ * size_;
+    return sizeof(Vector) + num_ * sizeof(T);
   }
 
   uint32_t Serialize(void* buf) const {
     Vector* p = (Vector*)buf;
-    p->num_ = num_;
-    p->size_ = size_;
-    p->ptr_ = (char*)this + sizeof(Vector);
-    memcpy(p->ptr_, ptr_, num_ * size_);
+    std::memcpy((void*)p, this, sizeof(Vector));
+    p->own_ = false;
+    p->ptr_ = reinterpret_cast<T*>(sizeof(Vector));
+    std::memcpy((char*)buf + (uintptr_t)p->ptr_, ptr_, num_ * sizeof(T));
 
     return DataSize();
   }
 
+  T& operator[](uint32_t idx) {
+    if (own_) {
+      return ptr_[idx];
+    } else {
+      return ((T*)((char*)this + (uintptr_t)ptr_))[idx];
+    }
+  }
+
+  uint32_t Num() const { return num_; }
+
  private:
+  bool own_;
   uint32_t num_;
-  uint32_t size_;
   T* ptr_;
 };
 
 template <typename T>
 class Vector<StructPointer<T>> {
  public:
-  explicit Vector(uint32_t num) : num_(num), size_(sizeof(StructPointer<T>)), ptr_(new StructPointer<T>()) {  }
+  explicit Vector(uint32_t num)
+    : own_(true), num_(num), ptr_(new StructPointer<T>()) {  }
+
+  ~Vector() { if (own_) { delete[] ptr_; } }
 
   uint32_t DataSize() const {
-    return sizeof(Vector) + num_ * size_;
+    uint32_t data_size = sizeof(Vector);
+    for (uint32_t i = 0; i < num_; ++i) {
+      data_size += ptr_->DataSize();
+    }
+
+    return data_size;
   }
 
   uint32_t Serialize(void* buf) const {
     Vector* p = (Vector*)buf;
-    p->num_ = num_;
-    p->size_ = size_;
-    p->ptr_ = (char*)this + sizeof(Vector);
-    memcpy(p->ptr, ptr_, num_ * size_);
+    p->own_ = false;
+    std::memcpy((void*)p, this, sizeof(Vector));
+    p->ptr_ = reinterpret_cast<T*>(sizeof(Vector));
 
-    uint32_t data_size = 0;
+    uint32_t data_size = DataSize();
     for (size_t i = 0; i < num_; ++i) {
       
     }
@@ -102,9 +122,20 @@ class Vector<StructPointer<T>> {
     return data_size;
   }
 
+  T& operator[](uint32_t idx) {
+    if (own_) {
+      return ptr_[idx].Ref();
+    } else {
+      return ((StructPointer<T>*)((char*)this + (uintptr_t)ptr_))[idx].Ref();
+    }
+  }
+
+  uint32_t Num() const { return num_; }
+
  private:
+  bool own_;
   uint32_t num_;
-  uint32_t size_;
   StructPointer<T>* ptr_;
 };
+
 #endif  // STRUCT_POINTER_H

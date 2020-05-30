@@ -203,3 +203,24 @@ TEST(Serialize, DoubleEmbedClassLv2) {
 
   delete[] buf;
 }
+
+TEST(Serialize, VectorFundamental) {
+  Vector<int> vec(20);
+  for (uint32_t i = 0; i < vec.Num(); ++i) {
+    vec[i] = i * 11;
+  }
+
+  uint32_t bufsize = vec.DataSize();
+  unsigned char* buf = new unsigned char[bufsize];
+  vec.Serialize(buf);
+
+  Vector<int>* p = (Vector<int>*)buf;
+  EXPECT_EQ(p->Num(), vec.Num());
+  for (uint32_t i = 0; i < p->Num(); ++i) {
+    EXPECT_EQ((*p)[i], vec[i]);
+  }
+
+  for (uint32_t i = 0; i < p->Num(); ++i) {
+    EXPECT_EQ((*p)[i], i * 11);
+  }
+}
