@@ -223,4 +223,6 @@ TEST(Serialize, VectorFundamental) {
   for (uint32_t i = 0; i < p->Num(); ++i) {
     EXPECT_EQ((*p)[i], i * 11);
   }
+
+  delete[] buf;
 }
