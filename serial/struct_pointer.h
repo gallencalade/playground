@@ -55,7 +55,7 @@ class alignas(8) StructPointer {
 };
 
 template <typename T>
-class Vector {
+class alignas(8) Vector {
  public:
   explicit Vector(uint32_t num) : own_(true), num_(num), ptr_(new T[num_]) {  }
 
@@ -92,10 +92,10 @@ class Vector {
 };
 
 template <typename T>
-class Vector<StructPointer<T>> {
+class alignas(8) Vector<StructPointer<T>> {
  public:
   explicit Vector(uint32_t num)
-    : own_(true), num_(num), ptr_(new StructPointer<T>()) {  }
+    : own_(true), num_(num), ptr_(new StructPointer<T>[num_]) {  }
 
   ~Vector() { if (own_) { delete[] ptr_; } }
 
@@ -110,16 +110,16 @@ class Vector<StructPointer<T>> {
 
   uint32_t Serialize(void* buf) const {
     Vector* p = (Vector*)buf;
-    p->own_ = false;
     std::memcpy((void*)p, this, sizeof(Vector));
-    p->ptr_ = reinterpret_cast<T*>(sizeof(Vector));
+    p->own_ = false;
+    p->ptr_ = reinterpret_cast<StructPointer<T>*>(sizeof(Vector));
 
-    uint32_t data_size = DataSize();
+    uint32_t data_size = 0;
     for (size_t i = 0; i < num_; ++i) {
-      
+      data_size += ptr_[i].Serialize((char*)buf + (uintptr_t)p->ptr_ + i * sizeof(StructPointer<T>), data_size + (num_ - i) * sizeof(StructPointer<T>));
     }
 
-    return data_size;
+    return data_size + sizeof(Vector) + num_ * sizeof(StructPointer<T>);
   }
 
   T& operator[](uint32_t idx) {

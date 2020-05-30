@@ -30,15 +30,18 @@ class alignas(8) Door {
 
 TEST(Serialize, SingleClass) {
   Door door;
-  door.set_color(127);
+  std::srand(777);
+  door.set_color(std::rand() % INT8_MAX);
 
   uint32_t bufsize = door.DataSize();
   unsigned char* buf = new unsigned char[bufsize];
-  EXPECT_EQ(door.Serialize(buf), bufsize);
+  EXPECT_EQ(bufsize, door.Serialize(buf));
 
   Door* p = (Door*)buf;
   EXPECT_EQ(p->color(), door.color());
-  EXPECT_EQ(p->color(), 127);
+
+  std::srand(777);
+  EXPECT_EQ(p->color(), std::rand() % INT8_MAX);
 
   delete[] buf;
 }
@@ -78,24 +81,26 @@ class alignas(8) House {
   StructPointer<Door> door2_;
 };
 
-TEST(Serialize, DoubleEmbedClassLv1) {
+TEST(Serialize, EmbedClassLv1) {
   House house;
-  house.door1().set_color(64);
-  house.set_location(10023);
-  house.door2().set_color(120);
+  std::srand(8888);
+  house.door1().set_color(std::rand() % INT8_MAX);
+  house.set_location(std::rand() % INT64_MAX);
+  house.door2().set_color(std::rand() % INT8_MAX);
 
   uint32_t bufsize = house.DataSize();
   unsigned char* buf = new unsigned char[bufsize];
-  EXPECT_EQ(house.Serialize(buf), bufsize);
+  EXPECT_EQ(bufsize, house.Serialize(buf));
 
   House* p = (House*)buf;
-
   EXPECT_EQ(p->door1().color(), house.door1().color());
   EXPECT_EQ(p->location(), house.location());
   EXPECT_EQ(p->door2().color(), house.door2().color());
-  EXPECT_EQ(p->door1().color(), 64);
-  EXPECT_EQ(p->location(), 10023);
-  EXPECT_EQ(p->door2().color(), 120);
+
+  std::srand(8888);
+  EXPECT_EQ(p->door1().color(), std::rand() % INT8_MAX);
+  EXPECT_EQ(p->location(), std::rand() % INT64_MAX);
+  EXPECT_EQ(p->door2().color(), std::rand() % INT8_MAX);
 
 
   delete[] buf;
@@ -166,7 +171,7 @@ class alignas(8) Person {
   StructPointer<House> house2_;
 };
 
-TEST(Serialize, DoubleEmbedClassLv2) {
+TEST(Serialize, EmbedClassLv2) {
   Person person;
   person.set_name(1111);
   person.house1().set_location(123);
@@ -180,7 +185,8 @@ TEST(Serialize, DoubleEmbedClassLv2) {
 
   uint32_t bufsize = person.DataSize();
   unsigned char* buf = new unsigned char[bufsize];
-  person.Serialize(buf);
+  EXPECT_EQ(bufsize, person.Serialize(buf));
+
   Person* p = (Person*)buf;
   EXPECT_EQ(p->name(), person.name());
   EXPECT_EQ(p->house1().location(), person.house1().location());
@@ -191,6 +197,7 @@ TEST(Serialize, DoubleEmbedClassLv2) {
   EXPECT_EQ(p->house2().location(), person.house2().location());
   EXPECT_EQ(p->house2().door1().color(), person.house2().door1().color());
   EXPECT_EQ(p->house2().door2().color(), person.house2().door2().color());
+
   EXPECT_EQ(p->name(), 1111);
   EXPECT_EQ(p->house1().location(), 123);
   EXPECT_EQ(p->house1().door1().color(), 1);
@@ -212,10 +219,11 @@ TEST(Serialize, VectorFundamental) {
 
   uint32_t bufsize = vec.DataSize();
   unsigned char* buf = new unsigned char[bufsize];
-  vec.Serialize(buf);
+  EXPECT_EQ(bufsize, vec.Serialize(buf));
 
   Vector<int>* p = (Vector<int>*)buf;
   EXPECT_EQ(p->Num(), vec.Num());
+
   for (uint32_t i = 0; i < p->Num(); ++i) {
     EXPECT_EQ((*p)[i], vec[i]);
   }
@@ -225,4 +233,76 @@ TEST(Serialize, VectorFundamental) {
   }
 
   delete[] buf;
+}
+
+TEST(Serialize, VectorSingleClass) {
+  Vector<StructPointer<Door>> vec(20);
+  for (uint32_t i = 0; i < vec.Num(); ++i) {
+    vec[i].set_color(i);
+  }
+
+  uint32_t bufsize = vec.DataSize();
+  unsigned char* buf = new unsigned char[bufsize];
+
+  EXPECT_EQ(bufsize, vec.Serialize(buf));
+  Vector<StructPointer<Door>>* p = (Vector<StructPointer<Door>>*)buf;
+  for (uint32_t i = 0; i < p->Num(); ++i) {
+    EXPECT_EQ((*p)[i].color(), vec[i].color());
+  }
+  for (uint32_t i = 0; i < p->Num(); ++i) {
+    EXPECT_EQ((*p)[i].color(), i);
+  }
+
+  delete[] buf;
+}
+
+TEST(Serialize, VectorEmbedClassLv1) {
+  Vector<StructPointer<House>> vec(20);
+  std::srand(9999);
+  for (uint32_t i = 0; i < vec.Num(); ++i) {
+    vec[i].door1().set_color(std::rand() % INT8_MAX);
+    vec[i].set_location(std::rand() % INT64_MAX);
+    vec[i].door2().set_color(std::rand() % INT8_MAX);
+  }
+
+  uint32_t bufsize = vec.DataSize();
+  unsigned char* buf = new unsigned char[bufsize];
+
+  EXPECT_EQ(bufsize, vec.Serialize(buf));
+  Vector<StructPointer<House>>* p = (Vector<StructPointer<House>>*)buf;
+  for (uint32_t i = 0; i < p->Num(); ++i) {
+    EXPECT_EQ((*p)[i].door1().color(), vec[i].door1().color());
+    EXPECT_EQ((*p)[i].location(), vec[i].location());
+    EXPECT_EQ((*p)[i].door2().color(), vec[i].door2().color());
+  }
+
+  std::srand(9999);
+  for (uint32_t i = 0; i < p->Num(); ++i) {
+    EXPECT_EQ((*p)[i].door1().color(), std::rand() % INT8_MAX);
+    EXPECT_EQ((*p)[i].location(), std::rand() % INT64_MAX);
+    EXPECT_EQ((*p)[i].door2().color(), std::rand() % INT8_MAX);
+  }
+
+
+  delete[] buf;
+}
+
+TEST(Serialize, VectorEmbedClassLv2) {
+
+}
+
+TEST(Serialize, VectorVectorFundamental) {
+
+}
+
+TEST(Serialize, VectorVectorSingleClass) {
+
+}
+
+TEST(Serialize, VectorVectorEmbedClassLv1) {
+
+}
+
+TEST(Serialize, VectorVectorEmbedClassLv2) {
+
 }
