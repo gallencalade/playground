@@ -75,7 +75,7 @@ class alignas(8) Vector {
   explicit Vector()
     : own_(true), cap_(4), num_(0), ptr_(new T[cap_]) {  }
 
-  explicit Vector(std::initializer_list<T> t)
+  Vector(std::initializer_list<T> t)
     : own_(true), cap_(t.size()), num_(0), ptr_(new T[cap_]) {
       for (auto a : t) {
         PushBack(a);
@@ -85,8 +85,9 @@ class alignas(8) Vector {
   explicit Vector(uint32_t num)
     : own_(true), cap_(num), num_(num), ptr_(cap_ ? new T[cap_] : nullptr) {  }
 
-  Vector(Vector& other)
-    : own_(true), cap_(other.cap_), num_(other.num_), ptr_(cap_ ? new T[cap_] : nullptr) {
+  Vector(const Vector& other)
+    : own_(true), cap_(other.cap_), num_(other.num_),
+      ptr_(cap_ ? new T[cap_] : nullptr) {
     std::memcpy(ptr_, other.ptr_, num_ * sizeof(T));
   }
 
@@ -159,18 +160,20 @@ class alignas(8) Vector<StructPointer<T>> {
   explicit Vector()
     : own_(true), cap_(4), num_(0), ptr_(new StructPointer<T>[cap_]) {  }
 
-  explicit Vector(std::initializer_list<T> t)
+  Vector(std::initializer_list<T> t)
     : own_(true), cap_(t.size()), num_(0), ptr_(new StructPointer<T>[cap_]) {
       for (auto a : t) {
         PushBack(a);
       }
     }
 
-  explicit Vector(uint32_t num)
-    : own_(true), cap_(num), num_(num), ptr_(num ? new StructPointer<T>[num_] : nullptr) {  }
+  Vector(uint32_t num)
+    : own_(true), cap_(num), num_(num),
+      ptr_(num ? new StructPointer<T>[num_] : nullptr) {  }
 
-  Vector(Vector& other)
-    : own_(true), cap_(other.cap_), num_(other.num_), ptr_(cap_ ? new StructPointer<T>[cap_] : nullptr) {
+  Vector(const Vector& other)
+    : own_(true), cap_(other.cap_), num_(other.num_),
+      ptr_(cap_ ? new StructPointer<T>[cap_] : nullptr) {
     for (uint32_t i = 0; i < other.num_; ++i) {
       ptr_[i] = other.ptr_[i];
     }
@@ -184,9 +187,9 @@ class alignas(8) Vector<StructPointer<T>> {
   ~Vector() { if (own_) { delete[] ptr_; } }
 
   uint32_t DataSize() const {
-    uint32_t data_size = sizeof(Vector);
+    uint32_t data_size = sizeof(Vector);  // pointer size is in StructPointer
     for (uint32_t i = 0; i < num_; ++i) {
-      data_size += ptr_->DataSize();
+      data_size += ptr_[i].DataSize();
     }
 
     return data_size;
@@ -200,8 +203,9 @@ class alignas(8) Vector<StructPointer<T>> {
 
     uint32_t data_size = 0;
     for (size_t i = 0; i < num_; ++i) {
-      data_size += ptr_[i].Serialize((char*)buf + (uintptr_t)p->ptr_ + i * sizeof(StructPointer<T>),
-            data_size + (num_ - i) * sizeof(StructPointer<T>));
+      data_size += ptr_[i].Serialize((char*)buf + (uintptr_t)p->ptr_ +
+            i * sizeof(StructPointer<T>), data_size +
+            (num_ - i) * sizeof(StructPointer<T>));
     }
 
     return data_size + sizeof(Vector) + num_ * sizeof(StructPointer<T>);
