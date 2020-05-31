@@ -5,6 +5,7 @@
 
 #include <gtest/gtest.h>
 
+//// Serialization Tests Cases
 class alignas(8) Door {
  public:
   uint32_t DataSize() const {
@@ -339,7 +340,7 @@ TEST(Serialize, VectorEmbedClassLv2) {
 }
 
 TEST(Serialize, VectorVectorFundamental) {
-
+//  Vector<StructPointer<Vector<int>>> vec( { { 1, 2, 3, 4 }, { 5, 6, 7 } } );
 }
 
 TEST(Serialize, VectorVectorSingleClass) {
@@ -352,4 +353,58 @@ TEST(Serialize, VectorVectorEmbedClassLv1) {
 
 TEST(Serialize, VectorVectorEmbedClassLv2) {
 
+}
+
+//// StructPointer Tests Cases
+TEST(StructPointer, StructPointerCopyAssign) {
+  StructPointer<Door> door1;
+  StructPointer<Door> door2(door1);
+  StructPointer<Door> door3 = door2;
+
+  StructPointer<Vector<int>> vec1(10);
+  StructPointer<Vector<int>> vec2(vec1);
+  StructPointer<Vector<int>> vec3 = vec2;
+
+  StructPointer<Vector<StructPointer<Door>>> vecdoor1(10);
+  StructPointer<Vector<StructPointer<Door>>> vecdoor2(vecdoor1);
+  StructPointer<Vector<StructPointer<Door>>> vecdoor3 = vecdoor2;
+
+  StructPointer<Vector<StructPointer<House>>> vechouse1(10);
+  StructPointer<Vector<StructPointer<House>>> vechouse2(vechouse1);
+  StructPointer<Vector<StructPointer<House>>> vechouse3 = vechouse2;
+
+  StructPointer<Vector<StructPointer<Person>>> vecperson1(10);
+  StructPointer<Vector<StructPointer<Person>>> vecperson2(vecperson1);
+  StructPointer<Vector<StructPointer<Person>>> vecperson3 = vecperson2;
+}
+
+//// Vector Tests Cases
+TEST(Vector, VectorCopyAssign) {
+  Vector<int> vec1(10);
+  Vector<int> vec2(vec1);
+  Vector<int> vec3 = vec2;
+
+  Vector<StructPointer<Door>> vecdoor1(10);
+  Vector<StructPointer<Door>> vecdoor2(vecdoor1);
+  Vector<StructPointer<Door>> vecdoor3 = vecdoor2;
+}
+
+TEST(Vector, VariableFundamental) {
+  Vector<int> vec;
+  for (uint32_t i = 0; i < 20; ++i) {
+    vec.PushBack(i);
+  }
+
+  EXPECT_EQ(20, vec.Num());
+  for (uint32_t i = 0; i < vec.Num(); ++i) {
+    EXPECT_EQ(i, vec[i]);
+  }
+}
+
+TEST(Vector, InitializerListFundamental) {
+  Vector<int> vec{ 0, 10, 20, 30, 40, 50, 60, 70, 80, 90 };
+  EXPECT_EQ(10, vec.Num());
+  for (uint32_t i = 0; i < vec.Num(); ++i) {
+    EXPECT_EQ(i * 10, vec[i]);
+  }
 }
