@@ -173,15 +173,16 @@ class alignas(8) Person {
 
 TEST(Serialize, EmbedClassLv2) {
   Person person;
-  person.set_name(1111);
-  person.house1().set_location(123);
-  person.house1().door1().set_color(1);
-  person.house1().door2().set_color(8);
-  person.set_gender(false);
-  person.car1().set_lic(1234);
-  person.house2().set_location(555);
-  person.house2().door1().set_color(99);
-  person.house2().door2().set_color(36);
+  std::srand(6666);
+  person.set_name(std::rand() % INT64_MAX);
+  person.house1().set_location(std::rand() % INT64_MAX);
+  person.house1().door1().set_color(std::rand() % INT8_MAX);
+  person.house1().door2().set_color(std::rand() % INT8_MAX);
+  person.set_gender(std::rand() % 2);
+  person.car1().set_lic(std::rand() % INT16_MAX);
+  person.house2().set_location(std::rand() % INT64_MAX);
+  person.house2().door1().set_color(std::rand() % INT8_MAX);
+  person.house2().door2().set_color(std::rand() % INT8_MAX);
 
   uint32_t bufsize = person.DataSize();
   unsigned char* buf = new unsigned char[bufsize];
@@ -198,15 +199,16 @@ TEST(Serialize, EmbedClassLv2) {
   EXPECT_EQ(p->house2().door1().color(), person.house2().door1().color());
   EXPECT_EQ(p->house2().door2().color(), person.house2().door2().color());
 
-  EXPECT_EQ(p->name(), 1111);
-  EXPECT_EQ(p->house1().location(), 123);
-  EXPECT_EQ(p->house1().door1().color(), 1);
-  EXPECT_EQ(p->house1().door2().color(), 8);
-  EXPECT_EQ(p->gender(), false);
-  EXPECT_EQ(p->car1().lic(), 1234);
-  EXPECT_EQ(p->house2().location(), 555);
-  EXPECT_EQ(p->house2().door1().color(), 99);
-  EXPECT_EQ(p->house2().door2().color(), 36);
+  std::srand(6666);
+  EXPECT_EQ(p->name(), std::rand() % INT64_MAX);
+  EXPECT_EQ(p->house1().location(), std::rand() % INT64_MAX);
+  EXPECT_EQ(p->house1().door1().color(), std::rand() % INT8_MAX);
+  EXPECT_EQ(p->house1().door2().color(), std::rand() % INT8_MAX);
+  EXPECT_EQ(p->gender(), std::rand() % 2);
+  EXPECT_EQ(p->car1().lic(), std::rand() % INT16_MAX);
+  EXPECT_EQ(p->house2().location(), std::rand() % INT64_MAX);
+  EXPECT_EQ(p->house2().door1().color(), std::rand() % INT8_MAX);
+  EXPECT_EQ(p->house2().door2().color(), std::rand() % INT8_MAX);
 
   delete[] buf;
 }
@@ -243,8 +245,8 @@ TEST(Serialize, VectorSingleClass) {
 
   uint32_t bufsize = vec.DataSize();
   unsigned char* buf = new unsigned char[bufsize];
-
   EXPECT_EQ(bufsize, vec.Serialize(buf));
+
   Vector<StructPointer<Door>>* p = (Vector<StructPointer<Door>>*)buf;
   for (uint32_t i = 0; i < p->Num(); ++i) {
     EXPECT_EQ((*p)[i].color(), vec[i].color());
@@ -267,8 +269,8 @@ TEST(Serialize, VectorEmbedClassLv1) {
 
   uint32_t bufsize = vec.DataSize();
   unsigned char* buf = new unsigned char[bufsize];
-
   EXPECT_EQ(bufsize, vec.Serialize(buf));
+
   Vector<StructPointer<House>>* p = (Vector<StructPointer<House>>*)buf;
   for (uint32_t i = 0; i < p->Num(); ++i) {
     EXPECT_EQ((*p)[i].door1().color(), vec[i].door1().color());
@@ -288,6 +290,51 @@ TEST(Serialize, VectorEmbedClassLv1) {
 }
 
 TEST(Serialize, VectorEmbedClassLv2) {
+  Vector<StructPointer<Person>> vec(20);
+  std::srand(6789);
+  for (uint32_t i = 0; i < vec.Num(); ++i) {
+    vec[i].set_name(std::rand() % INT64_MAX);
+    vec[i].house1().set_location(std::rand() % INT64_MAX);
+    vec[i].house1().door1().set_color(std::rand() % INT8_MAX);
+    vec[i].house1().door2().set_color(std::rand() % INT8_MAX);
+    vec[i].set_gender(std::rand() % 2);
+    vec[i].car1().set_lic(std::rand() % INT16_MAX);
+    vec[i].house2().set_location(std::rand() % INT64_MAX);
+    vec[i].house2().door1().set_color(std::rand() % INT8_MAX);
+    vec[i].house2().door2().set_color(std::rand() % INT8_MAX);
+  }
+
+  uint32_t bufsize = vec.DataSize();
+  unsigned char* buf = new unsigned char[bufsize];
+  EXPECT_EQ(bufsize, vec.Serialize(buf));
+
+  Vector<StructPointer<Person>>* p = (Vector<StructPointer<Person>>*)buf;
+  for (uint32_t i = 0; i < vec.Num(); ++i) {
+    EXPECT_EQ((*p)[i].name(), vec[i].name());
+    EXPECT_EQ((*p)[i].house1().location(), vec[i].house1().location());
+    EXPECT_EQ((*p)[i].house1().door1().color(), vec[i].house1().door1().color());
+    EXPECT_EQ((*p)[i].house1().door2().color(), vec[i].house1().door2().color());
+    EXPECT_EQ((*p)[i].gender(), vec[i].gender());
+    EXPECT_EQ((*p)[i].car1().lic(), vec[i].car1().lic());
+    EXPECT_EQ((*p)[i].house2().location(), vec[i].house2().location());
+    EXPECT_EQ((*p)[i].house2().door1().color(), vec[i].house2().door1().color());
+    EXPECT_EQ((*p)[i].house2().door2().color(), vec[i].house2().door2().color());
+  }
+
+  std::srand(6789);
+  for (uint32_t i = 0; i < vec.Num(); ++i) {
+    EXPECT_EQ((*p)[i].name(), std::rand() % INT64_MAX);
+    EXPECT_EQ((*p)[i].house1().location(), std::rand() % INT64_MAX);
+    EXPECT_EQ((*p)[i].house1().door1().color(), std::rand() % INT8_MAX);
+    EXPECT_EQ((*p)[i].house1().door2().color(), std::rand() % INT8_MAX);
+    EXPECT_EQ((*p)[i].gender(), std::rand() % 2);
+    EXPECT_EQ((*p)[i].car1().lic(), std::rand() % INT16_MAX);
+    EXPECT_EQ((*p)[i].house2().location(), std::rand() % INT64_MAX);
+    EXPECT_EQ((*p)[i].house2().door1().color(), std::rand() % INT8_MAX);
+    EXPECT_EQ((*p)[i].house2().door2().color(), std::rand() % INT8_MAX);
+  }
+
+  delete[] buf;
 
 }
 
