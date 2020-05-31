@@ -343,9 +343,9 @@ TEST(Serialize, VectorEmbedClassLv2) {
 
 TEST(Serialize, VectorVectorFundamental) {
   Vector<StructPointer<Vector<int>>> vec{
-    { 10, 11, 12, 13, 14, 15 },
+    { 10, 11, 12, 13, 14, },
     { 20, 21, 22, 23 } };
-  EXPECT_EQ(6, vec[0].Num());
+  EXPECT_EQ(5, vec[0].Num());
   EXPECT_EQ(4, vec[1].Num());
 
   for (uint32_t i = 0; i < vec[0].Num(); ++i) {
@@ -381,29 +381,29 @@ TEST(Serialize, VectorVectorSingleClass) {
 
   EXPECT_EQ(5, vec[0].Num());
   EXPECT_EQ(3, vec[1].Num());
-//  for (uint32_t i = 0; i < vec[0].Num(); ++i) {
-//    EXPECT_EQ(i, vec[0][i].color());
-//  }
-//  for (uint32_t i = 0; i < vec[1].Num(); ++i) {
-//    EXPECT_EQ(i * 10, vec[1][i].color());
-//  }
+  for (uint32_t i = 0; i < vec[0].Num(); ++i) {
+    EXPECT_EQ(i, vec[0][i].color());
+  }
+  for (uint32_t i = 0; i < vec[1].Num(); ++i) {
+    EXPECT_EQ(10 + i, vec[1][i].color());
+  }
 
-//  uint32_t bufsize = vec.DataSize();
-//  unsigned char* buf = new unsigned char[bufsize];
+  uint32_t bufsize = vec.DataSize();
+  unsigned char* buf = new unsigned char[bufsize];
 
-//  EXPECT_EQ(bufsize, vec.Serialize(buf));
-//  Vector<StructPointer<Vector<StructPointer<Door>>>>* p =
-//      (Vector<StructPointer<Vector<StructPointer<Door>>>>*)buf;
-//  EXPECT_EQ(5, (*p)[0].Num());
-//  EXPECT_EQ(3, (*p)[1].Num());
-//  for (uint32_t i = 0; i < vec[0].Num(); ++i) {
-//    EXPECT_EQ(i, (*p)[0][i].color());
-//  }
-//  for (uint32_t i = 0; i < vec[1].Num(); ++i) {
-//    EXPECT_EQ(i * 10, (*p)[1][i].color());
-//  }
+  EXPECT_EQ(bufsize, vec.Serialize(buf));
+  Vector<StructPointer<Vector<StructPointer<Door>>>>* p =
+      (Vector<StructPointer<Vector<StructPointer<Door>>>>*)buf;
+  EXPECT_EQ((*p)[0].Num(), vec[0].Num());
+  EXPECT_EQ((*p)[1].Num(), vec[1].Num());
+  for (uint32_t i = 0; i < vec[0].Num(); ++i) {
+    EXPECT_EQ(i, (*p)[0][i].color());
+  }
+  for (uint32_t i = 0; i < vec[1].Num(); ++i) {
+    EXPECT_EQ(10 + i, (*p)[1][i].color());
+  }
 
-//  delete[] buf;
+  delete[] buf;
 }
 
 TEST(Serialize, VectorVectorEmbedClassLv1) {
