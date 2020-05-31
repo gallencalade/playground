@@ -387,6 +387,30 @@ TEST(Vector, VectorCopyAssign) {
   Vector<StructPointer<Door>> vecdoor1(10);
   Vector<StructPointer<Door>> vecdoor2(vecdoor1);
   Vector<StructPointer<Door>> vecdoor3 = vecdoor2;
+
+  Vector<StructPointer<House>> vechouse1(10);
+  Vector<StructPointer<House>> vechouse2(vechouse1);
+  Vector<StructPointer<House>> vechouse3 = vechouse2;
+
+  Vector<StructPointer<Person>> vecperson1(10);
+  Vector<StructPointer<Person>> vecperson2(vecperson1);
+  Vector<StructPointer<Person>> vecperson3 = vecperson2;
+
+  Vector<StructPointer<Vector<int>>> vecvec1(10);
+  Vector<StructPointer<Vector<int>>> vecvec2(vecvec1);
+  Vector<StructPointer<Vector<int>>> vecvec3 = vecvec2;
+
+  Vector<StructPointer<Vector<StructPointer<Door>>>> vecvecdoor1(10);
+  Vector<StructPointer<Vector<StructPointer<Door>>>> vecvecdoor2(vecvecdoor1);
+  Vector<StructPointer<Vector<StructPointer<Door>>>> vecvecdoor3 = vecvecdoor2;
+
+  Vector<StructPointer<Vector<StructPointer<House>>>> vecvechouse1(10);
+  Vector<StructPointer<Vector<StructPointer<House>>>> vecvechouse2(vecvechouse1);
+  Vector<StructPointer<Vector<StructPointer<House>>>> vecvechouse3 = vecvechouse2;
+
+  Vector<StructPointer<Vector<StructPointer<Person>>>> vecvecperson1(10);
+  Vector<StructPointer<Vector<StructPointer<Person>>>> vecvecperson2(vecvecperson1);
+  Vector<StructPointer<Vector<StructPointer<Person>>>> vecvecperson3 = vecvecperson2;
 }
 
 TEST(Vector, VariableFundamental) {
