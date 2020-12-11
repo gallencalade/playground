@@ -3,6 +3,10 @@ package myjni;
 public class TestJNIReference {
    static {
       System.loadLibrary("myjni"); // myjni.dll (Windows) or libmyjni.so (Unixes)
+      System.loadLibrary("myjni"); // myjni.dll (Windows) or libmyjni.so (Unixes)
+      System.loadLibrary("myjni"); // myjni.dll (Windows) or libmyjni.so (Unixes)
+      System.loadLibrary("myjni"); // myjni.dll (Windows) or libmyjni.so (Unixes)
+      System.loadLibrary("myjni"); // myjni.dll (Windows) or libmyjni.so (Unixes)
    }
  
    // A native method that returns a java.lang.Integer with the given int.
@@ -12,6 +16,7 @@ public class TestJNIReference {
    private native Integer anotherGetIntegerObject(int number);
  
    public static void main(String args[]) {
+      System.out.println("fasfdsafs");
       myjni.TestJNIReference test = new myjni.TestJNIReference();
       System.out.println(test.getIntegerObject(1));
       System.out.println(test.getIntegerObject(2));
