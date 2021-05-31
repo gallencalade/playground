@@ -1,59 +1,45 @@
-#include <map>
-#include <vector>
 #include <gtest/gtest.h>
 
-class Offsetter {
- public:
-  auto LowerBound(size_t offset, int s) const {
-    return s * (offset + (s - 1)) / s;
-  }
-
-  auto FillAt(std::map<size_t, int>::iterator i, int s, int n) {
-    auto lb = LowerBound(i->first, s);
-    if (i->second > s * n) {
-      m_[lb + s * n] = i->second - s * n;
-    }
-    if (lb > i->first) {
-      m_[i->first] = lb - i->first;
-    }
-
-    return lb;
-  }
-
-  auto FillNew(int s, int n = 1) {
-    auto r = last_;
-    last_ += s * n;
-    m_[last_] = LowerBound(last_, 8) - last_;
-    return r;
-  }
-
-  auto Find(int s, int n = 1) {
-    for (auto i = m_.begin(); i != m_.end(); ++i) {
-      if (i->second >= s * n) {
-        return i;
-      }
-    }
-
-    return m_.find(last_);
-  }
-
-  std::size_t last_ = 0;
-  std::map<size_t, int> m_;
-};
-
-std::vector<size_t> reorder(const std::vector<std::pair<int, int>>& ms) {
-  std::vector<size_t> r;
-  std::map<size_t, int> m;
-  for (auto [s, n] : ms) {
-  }
-
-  return r;
-}
+#include "test.h"
 
 TEST(Main, Test) {
-  std::vector<std::pair<int, int>> ms {
-    { sizeof(char), 1 }
-  };
+  {
+    Offsetter setter;
+    auto r = setter.FillNew(sizeof(char));
+    auto f = setter.Find(sizeof(short), 3);
+    EXPECT_EQ(f->first, setter.last_);
+    EXPECT_EQ(2, setter.FillAt(f, sizeof(short), 3));
+    EXPECT_EQ(setter.m_.size(), 1);
+    EXPECT_EQ(setter.m_[1], 1);
+  }
+  {
+    Offsetter setter;
+    auto r = setter.FillNew(sizeof(char));
+    auto f = setter.Find(sizeof(char), 7);
+    EXPECT_EQ(f->first, setter.last_);
+    EXPECT_EQ(1, setter.FillAt(f, sizeof(char), 7));
+    EXPECT_EQ(setter.m_.size(), 0);
+  }
+
+  {
+    Offsetter setter;
+    auto r = setter.FillNew(sizeof(char));
+    auto f = setter.Find(sizeof(short), 2);
+    EXPECT_EQ(f->first, setter.last_);
+    EXPECT_EQ(2, setter.FillAt(f, sizeof(short), 2));
+    EXPECT_EQ(setter.m_.size(), 2);
+    EXPECT_EQ(setter.m_[1], 1);
+    EXPECT_EQ(setter.m_[6], 2);
+  }
+  {
+    Offsetter setter;
+    auto r = setter.FillNew(sizeof(char));
+    auto f = setter.Find(sizeof(char), 6);
+    EXPECT_EQ(f->first, setter.last_);
+    EXPECT_EQ(1, setter.FillAt(f, sizeof(char), 6));
+    EXPECT_EQ(setter.m_.size(), 1);
+    EXPECT_EQ(setter.m_[7], 1);
+  }
 
   {
     Offsetter setter;
