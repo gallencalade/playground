@@ -6,8 +6,15 @@ TEST(Main, Test) {
   {
     Offsetter setter;
     auto r = setter.FillNew(sizeof(char));
+    auto f = setter.Find(sizeof(int), 1);
+    EXPECT_EQ(4, setter.FillAt(f, sizeof(int), 1));
+    EXPECT_EQ(setter.m_.size(), 1);
+    EXPECT_EQ(setter.m_[1], 3);
+  }
+  {
+    Offsetter setter;
+    auto r = setter.FillNew(sizeof(char));
     auto f = setter.Find(sizeof(short), 3);
-    EXPECT_EQ(f->first, setter.last_);
     EXPECT_EQ(2, setter.FillAt(f, sizeof(short), 3));
     EXPECT_EQ(setter.m_.size(), 1);
     EXPECT_EQ(setter.m_[1], 1);
@@ -16,7 +23,6 @@ TEST(Main, Test) {
     Offsetter setter;
     auto r = setter.FillNew(sizeof(char));
     auto f = setter.Find(sizeof(char), 7);
-    EXPECT_EQ(f->first, setter.last_);
     EXPECT_EQ(1, setter.FillAt(f, sizeof(char), 7));
     EXPECT_EQ(setter.m_.size(), 0);
   }
